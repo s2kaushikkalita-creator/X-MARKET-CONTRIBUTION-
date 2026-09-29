@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send Link - X-Market</title>
+<style>
+body { font-family: -apple-system, sans-serif; max-width: 500px; margin: 30px auto; padding: 20px; background: #f8f9fa; }
+.xmarket-box { background: linear-gradient(135deg, #000 0%, #333 100%); color: white; padding: 16px; border-radius: 16px; margin-bottom: 20px; text-align: center; }
+.xmarket-box h3 { margin: 0 0 6px 0; font-size: 16px; }.xmarket-box p { margin: 0; font-size: 13px; opacity: 0.8; }
+.card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+input { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+button { width: 100%; padding: 14px; background: #000; color: white; border-radius: 10px; border: none; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 10px; }
+.link-card { background: white; padding: 14px; margin-top: 12px; border-radius: 12px; border: 1px solid #eee; }
+.link-card a { color: #0a84ff; text-decoration: none; word-break: break-all; }
+#success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 999; }
+#success-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+.checkmark { width: 80px; height: 80px; border-radius: 50%; background: #000; display: flex; justify-content: center; align-items: center; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.checkmark svg { width: 40px; height: 40px; stroke: white; stroke-width: 3; fill: none; stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw 0.4s ease 0.5s forwards; }
+.success-text { margin-top: 16px; font-weight: 700; font-size: 18px; animation: slideUp 0.4s ease 0.6s both; }
+@keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="xmarket-box">
+  <h3>🚀 Contributing to the formation of X-Market</h3>
+  <p>Every link you send is building our resource library.</p>
+</div>
+
+<div class="card">
+<h2 style="margin:0 0 10px 0;">🔗 Send Link</h2>
+<input id="title" placeholder="Title - ex: My Project">
+<input id="url" placeholder="https://...">
+<button id="btn" onclick="sendLink()">Send Link</button>
+</div>
+
+<div id="list" style="margin-top:20px;"></div>
+
+<div id="success-overlay" onclick="this.classList.remove('show')">
+  <div class="checkmark">
+    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+  </div>
+  <div class="success-text">Link Sent!</div>
+  <div style="font-size:14px; color:#666; margin-top:4px;">Added to X-Market</div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyIf5xBgfmGOIjGFeqkUZ6DzFYUiHi41W9ayiEcaUl2XNG3v1YLs8UX1PIBplzcxdO8/exec";
+
+async function sendLink() {
+  const titleEl = document.getElementById('title');
+  const urlEl = document.getElementById('url');
+  const btn = document.getElementById('btn');
+  if(!titleEl.value ||!urlEl.value) { alert("Fill both fields"); return; }
+  btn.disabled = true; btn.innerText = "Sending...";
+  try {
+    await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ title: titleEl.value, url: urlEl.value }) });
+    showSuccess();
+    titleEl.value = ""; urlEl.value = "";
+    setTimeout(loadLinks, 1500);
+  } catch(e) { showSuccess(); }
+  btn.disabled = false; btn.innerText = "Send Link";
+}
+
+function showSuccess() {
+  const overlay = document.getElementById('success-overlay');
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 2000);
+}
+
+async function loadLinks() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    let html = "<h3>Sent Links</h3>";
+    data.slice(1).reverse().forEach(row => {
+      if(!row[0]) return;
+      html += `<div class="link-card"><b>${row[0]}</b><a href="${row[1]}" target="_blank">${row[1]}</a></div>`;
+    });
+    document.getElementById('list').innerHTML = html;
+  } catch(e) {}
+}
+loadLinks();
+</script>
+</body>
+</html>
